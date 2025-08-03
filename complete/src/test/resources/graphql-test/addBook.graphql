@@ -1,0 +1,12 @@
+mutation addBook($name: String!, $pageCount: Int!, $authorId: String!) {
+  addBook(name: $name, pageCount: $pageCount, authorId: $authorId) {
+    id
+    name
+    pageCount
+    author {
+      id
+      firstName
+      lastName
+    }
+  }
+}

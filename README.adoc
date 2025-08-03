@@ -3,6 +3,14 @@
 :icons: font
 :source-highlighter: prettify
 
+> Spring's official documentation and examples do not provide runnable example on implementing mutations.
+Therefore, I Added a simple mutation example and updated the README.
+>
+> .Reference links:
+> * https://docs.spring.io/spring-graphql/reference/controllers.html
+> * https://spring.io/guides/gs/graphql-server
+> * https://github.com/spring-guides/gs-graphql-server
+
 https://spring.io/projects/spring-graphql[Spring for GraphQL] provides support for Spring applications built on https://www.graphql-java.com/[GraphQL Java].
 
 This guide walks you through the process of creating a GraphQL service in Java using Spring for GraphQL.
@@ -265,6 +273,79 @@ In our test, we provide a document with `documentName` with the required variabl
 We then select a part of the response with its JSON path and assert that the JSON at this location matches the expected result.
 
 Congratulations! In this tutorial you built a GraphQL service, ran your first query, and wrote your first GraphQL test!
+
+== Adding code to add data
+
+=== Define the addBook Mutation
+
+First, define a mutation in your GraphQL schema. Open your schema file located at `src/main/resources/graphql/schema.graphqls` and add the following mutation definition:
+
+[source,graphql]
+type Mutation {
+    addBook(name: String!, pageCount: Int!, authorId: String!): Book
+}
+
+This mutation allows clients to add a new book by providing the name, page count, and associated author ID.
+
+Ensure your controller handles the mutation logic using the `@MutationMapping` annotation:
+
+[source,java]
+@MutationMapping
+public Book addBook(@Arguments BookInput bookInput) {
+    return Book.addBook(bookInput);
+}
+
+Define the `BookInput` record:
+
+[source,java]
+public record BookInput(String name, Integer pageCount, String authorId) {}
+
+In the Book class, add the addBook method:
+
+[source,java]
+public static Book addBook(BookInput bookInput) {
+    Book book = new Book(String.format("book-%d", books.size() + 1), bookInput.name(), bookInput.pageCount(), bookInput.authorId());
+    books.add(book);
+    return book;
+}
+
+=== Run the query
+
+Start your Spring application and Navigate to http://localhost:8080/graphiql.
+
+Enter the following mutation in the GraphiQL interface and click the "play" button:
+
+[source,graphql]
+mutation AddBookMutation {
+  addBook(name: "GraphQL Basics", pageCount: 250, authorId: "42") {
+    id
+    name
+    pageCount
+    author {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+You should see a response like the following:
+
+[source,graphql]
+{
+    "data": {
+        "addBook": {
+            "id": "book-4",
+            "name": "GraphQL Basics",
+            "pageCount": 250,
+            "author": null
+        }
+    }
+}
+
+> Note: The author field is returned as null because author is not exists.
+
+Once the book is added, you can query `bookById(id: "book-4")` successfully.
 
 == Further reading
 
